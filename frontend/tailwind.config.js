@@ -12,6 +12,10 @@ export default {
 		},
   		colors: {
   			'primary-green': '#00ff62',
+<<<<<<< HEAD
+=======
+			'primary-blue': '#5f6FFF',
+>>>>>>> a8d0173 (added feture games)
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
