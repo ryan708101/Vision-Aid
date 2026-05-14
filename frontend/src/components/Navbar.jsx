@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { assets } from '../assets/assets.js';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 
 const Navbar = () => {
@@ -8,7 +9,8 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showModal, setShowModal] = useState(false)
-  const [token, setToken] = useState(false);
+  const [token, setToken] = useState(true);
+  const user = useSelector((state) => state.user);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,7 +103,7 @@ const Navbar = () => {
         {
             token ?
             <div>
-            <img src={photo} onClick={()=>navigate('/profile-page')} className='h-20 w-20 object-cover rounded-full max-900px:h-14 max-900px:w-14 max-md:hidden' />
+            <img src={user.photo} onClick={()=>navigate('/profile-page')} className='h-20 w-20 object-cover rounded-full max-900px:h-14 max-900px:w-14 max-md:hidden' />
             </div>:
             <NavLink to="/login" className="text-xl bg-primary-green px-4 py-2 border-2 rounded-full hover:scale-105 transition-all text-black duration-500 max-md:hidden">
             Login
@@ -113,7 +115,7 @@ const Navbar = () => {
         {
             showModal &&
             <div className={`md:hidden bg-black fixed left-0 h-min py-10 w-full flex flex-col gap-4 items-center border-white border ${showModal ? 'top-0' : 'top-[-10]'}`}>
-            {token && <img src={photo} className='w-14 object-cover rounded-full h-14' onClick={()=>{navigate('/profile-page'); setShowModal(false)}} />}
+            {token && <img src={user.photo} className='w-14 object-cover rounded-full h-14' onClick={()=>{navigate('/profile-page'); setShowModal(false)}} />}
             {!token && <div onClick={()=>{navigate('/login'); setShowModal(false)}} className='bg-primary-green text-white px-4 py-2 rounded-full'>Login</div>}
             <div className="flex flex-col items-center">
                 <NavLink onClick={()=>setShowModal(false)}

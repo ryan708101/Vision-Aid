@@ -4,13 +4,14 @@ import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import Diagnose from './pages/Diagnose';
 import { Footer } from './components/Footer';
-<<<<<<< HEAD
-=======
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import GameRouter from './pages/GameRouter';
 import ExercisePage from './pages/ExercisePage';
->>>>>>> a8d0173 (added feture games)
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import MyProfile from './pages/MyProfile';
 
 const App = () => {
   return (
@@ -20,18 +21,16 @@ const App = () => {
         <Routes>
           <Route path='/' element={<LandingPage/>}/>
           <Route path='/diagnose' element={ <Diagnose/> }/>
-<<<<<<< HEAD
-        </Routes>
-
-=======
           <Route path='/exercise' element={ <ExercisePage/> }/>
           <Route path="/exercise/:day" element={<GameRouter />} />
-
+          <Route path='/about' element={ <About/> }/>
+          <Route path='/contact' element={ <Contact/> } />
+          <Route path='/login' element={ <Login/> } />
+          <Route path='profile-page' element={ <MyProfile/> } />
         </Routes>
 
 
         <ToastContainer />
->>>>>>> a8d0173 (added feture games)
         <Footer/>
     </div>
   )

@@ -10,25 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@reduxjs/toolkit": "^2.10.1",
->>>>>>> a8d0173 (added feture games)
     "axios": "^1.13.2",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.554.0",
     "motion": "^12.23.24",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
-<<<<<<< HEAD
-    "react-router-dom": "^7.9.6",
-=======
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.6",
     "react-toastify": "^11.0.5",
->>>>>>> a8d0173 (added feture games)
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7"
   },
