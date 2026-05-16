@@ -12,32 +12,31 @@ const ExercisePage = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
 
-  // For now backend substitutes this — defaulting to DR
   const [detectedDisease, setDetectedDisease] = useState(
-    user?.detectedDisease || "Diabetic Retinopathy"
+    user?.detectedDisease || "Normal"
   );
 
   const [progress, setProgress] = useState(0);
 
   // Redirect unauthenticated user
-//   useEffect(() => {
-//     if (!user.token) {
-//       navigate("/login");
-//       toast.error("Please Login First!");
-//     }
-//   }, [user.token]);
+  useEffect(() => {
+    if (!user.token) {
+      navigate("/login");
+      toast.error("Please Login First!");
+    }
+  }, [user.token]);
 
   // If user has no disorders
-//   if (user && user.diagnosed === "No Disorders") {
-//     return (
-//       <div className="pt-40 pb-20 max-w-[1280px] mx-auto text-center font-bold text-3xl flex items-center flex-col">
-//         <span className="text-primary-blue">Congratulations!</span> <br />
-//         You have no diagnosed disorders. <br />
-//         Keep taking care of your well-being!
-//         <img className="w-[300px] h-[300px]" src={assets.PartyPopper} alt="" />
-//       </div>
-//     );
-//   }
+  if (user && user.detectedDisease === "Normal") {
+    return (
+      <div className="pt-40 pb-20 max-w-[1280px] mx-auto text-center font-bold text-3xl flex items-center flex-col">
+        <span className="text-primary-blue">Congratulations!</span> <br />
+        You have no diagnosed disorders. <br />
+        Keep taking care of your well-being!
+        <img className="w-[300px] h-[300px]" src={assets.PartyPopper} alt="" />
+      </div>
+    );
+  }
 
   // Calculate progress bar %
   useEffect(() => {

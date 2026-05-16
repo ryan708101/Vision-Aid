@@ -13,7 +13,7 @@ export default function PeripheralTargetCatch({ onFinish }) {
 
   const DURATION = 30;
   const MAX_SCORE = 100;
-  const CORRECT = 3;
+  const CORRECT = 10;
   const WRONG = -1;
 
   const [timeLeft, setTimeLeft] = useState(DURATION);

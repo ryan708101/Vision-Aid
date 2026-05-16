@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Upload, Eye, AlertCircle, CheckCircle, Loader2, X } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateDetectedDisease } from '../redux/userSlice.js' 
+
 
 export default function Diagnose() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -7,6 +10,8 @@ export default function Diagnose() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { token } = useSelector((state) => state.user);
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
@@ -60,6 +65,11 @@ export default function Diagnose() {
 
       if (response.ok) {
         setResult(data);
+        // Step 2: Update disease in backend via Redux thunk
+        await dispatch(updateDetectedDisease({ 
+          disease: data.prediction,
+          token 
+        })).unwrap();
       } else {
         setError(data.error || 'Failed to process image');
       }

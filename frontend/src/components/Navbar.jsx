@@ -9,7 +9,7 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showModal, setShowModal] = useState(false)
-  const [token, setToken] = useState(true);
+  const {token} = useSelector(state => state.user)
   const user = useSelector((state) => state.user);
 
   useEffect(() => {

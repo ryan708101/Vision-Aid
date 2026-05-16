@@ -4,191 +4,213 @@ import { toast } from "react-toastify";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-// Thunk for login
+/* ==================================================================
+   ASYNC THUNKS - API CALLS
+================================================================== */
+
+// Login user
 export const loginUser = createAsyncThunk(
   "user/login",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(backendUrl + "/api/user/login", { email, password });
+      const { data } = await axios.post(backendUrl + "/api/user/login", { 
+        email, 
+        password 
+      });
       return data;
     } catch (error) {
-      return rejectWithValue("Login failed");
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
   }
 );
 
-// Thunk for register
+// Register user
 export const registerUser = createAsyncThunk(
   "user/register",
   async ({ fullName, email, password }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(backendUrl + "/api/user/register", { fullName, email, password });
+      const { data } = await axios.post(backendUrl + "/api/user/register", { 
+        fullName, 
+        email, 
+        password 
+      });
       return data;
     } catch (error) {
-      return rejectWithValue("Registration failed");
+      return rejectWithValue(error.response?.data?.message || "Registration failed");
     }
   }
 );
 
-// Thunk for getting user
+// Get user data
 export const getUser = createAsyncThunk(
   'user/getUser',
   async (token, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(backendUrl + '/api/user/getUser', { headers: { token } });
+      const { data } = await axios.get(backendUrl + '/api/user/getUser', { 
+        headers: { token } 
+      });
       return data;
     } catch (error) {
-      return rejectWithValue("Failed to get user");
+      return rejectWithValue(error.response?.data?.message || "Failed to get user");
     }
   }
 );
 
-// Thunk for updating user profile
+// Update user profile
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
   async (formData, { getState, rejectWithValue }) => {
     try {
       const state = getState();
-      const { data } = await axios.post(backendUrl + '/api/user/updateProfile', formData, { headers: { token: state.user.token } });
+      const { data } = await axios.post(
+        backendUrl + '/api/user/updateProfile', 
+        formData, 
+        { headers: { token: state.user.token } }
+      );
       return data;
     } catch (error) {
-      return rejectWithValue("An error occurred");
+      return rejectWithValue(error.response?.data?.message || "Failed to update profile");
     }
   }
 );
 
+// Update detected disease after diagnosis
+export const updateDetectedDisease = createAsyncThunk(
+  'user/updateDetectedDisease',
+  async ({ disease }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState();
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/updateDisease`,
+        { detectedDisease: disease },
+        { headers: { token: state.user.token } }
+      );
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to update disease");
+    }
+  }
+);
+
+// Handle game completion
+export const handleGameCompletion = createAsyncThunk(
+  'user/handleGameCompletion',
+  async ({ score, week, day, lastPlayedDate }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState();
+      const { curWeek, curChallenge } = state.user;
+      
+      // Calculate next week and challenge based on score
+      let nextWeek = curWeek;
+      let nextChallenge = curChallenge;
+      
+      if (score >= 80) {
+        if (curChallenge === 7) {
+          if (curWeek < 4) {
+            nextWeek = curWeek + 1;
+            nextChallenge = 1;
+          }
+        } else {
+          nextChallenge = curChallenge + 1;
+        }
+      }
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/handleGameCompletion`,
+        {
+          score,
+          week,
+          day,
+          curWeek,
+          curChallenge,
+          nextWeek,
+          nextChallenge,
+          lastPlayedDate,
+          date: new Date().toISOString()
+        },
+        { headers: { token: state.user.token } }
+      );
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to complete game");
+    }
+  }
+);
+
+/* ==================================================================
+   INITIAL STATE
+================================================================== */
+
 const initialState = {
-  token: localStorage.getItem('token') || "true",
-  firstName: "Test",
-  lastName: "User",
-  email: "test@gmail.com",
-  phone: "9999999999",
+  token: localStorage.getItem('token') || "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
   photo: null,
 
-  // Backend diagnosed disease
-  detectedDisease: "Diabetic Retinopathy",
+  // Detected disease from diagnosis
+  detectedDisease: "",
 
-  // Weeks 1–4, each with 7 challenges
-  scores: Array.from({ length: 4 }, () => Array(7).fill(0)),
-  // scores: [
-  //   [90, 90, 90, 90, 90, 90, 90],
-  //   [0, 0, 0, 0, 0, 0, 0],
-  //   [0, 0, 0, 0, 0, 0, 0],
-  //   [0, 0, 0, 0, 0, 0, 0],
-  // ],                             // for testing purposes
-
+  // Progress tracking
   curWeek: 1,
   curChallenge: 1,
   selectedWeek: 1,
 
+  // Scores: 4 weeks x 7 challenges
+  scores: Array.from({ length: 4 }, () => Array(7).fill(0)),
 
-  date: new Date().toISOString(),
-  // date: "2024-01-01",              // for testing purposes
+  // Badges and activity tracking
+  badges: Array(4).fill(false),
+  activityDates: [],
 
-  // Track the last date (ISO yyyy-mm-dd) the user played any exercise.
-  // This enforces the "one game per day" rule.
+  // Last played date for daily limit
   lastPlayedDate: null,
 
-  status: "idle", // loading, succeeded, failed
+  // Account creation date
+  date: new Date().toISOString(),
 
-  badges: [],
-  activityDates: [],
+  // Loading status
+  status: "idle",
 };
+
+/* ==================================================================
+   SLICE
+================================================================== */
 
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    // Set multiple user properties at once
     setUser: (state, action) => {
       return { ...state, ...action.payload };
     },
 
+    // Update selected week for UI
     updateSelectedWeek: (state, action) => {
       state.selectedWeek = action.payload;
     },
 
-    setDisease: (state, action) => {
-      state.detectedDisease = action.payload;
-    },
-
-    updateScore: (state, action) => {
-      const { week, day, score } = action.payload;
-      if (Number(score) > state.scores[week][day]) {
-        state.scores[week][day] = Number(score);
-      }
-    },
-
-    nextChallenge: (state) => {
-      if (state.curChallenge < 7) {
-        state.curChallenge++;
-      } else {
-        if (state.curWeek < 4) {
-          state.curWeek++;
-          state.curChallenge = 1;
-        }
-      }
-    },
-
-    setLastPlayedDate(state, action) {
-      // action.payload should be ISO date string 'YYYY-MM-DD'
-      state.lastPlayedDate = action.payload;
-    },
-
+    // Clear token (logout helper)
     clearToken: (state) => {
       state.token = '';
       localStorage.setItem('token', '');
     },
 
-    logoutUser(state) {
+    // Full logout - reset to initial state
+    logoutUser: () => {
       localStorage.setItem('token', '');
       return initialState;
     },
-
-    addActivityDate: (state, action) => {
-			const { date, curWeek, curChallenge } = action.payload;
-			// Avoid adding duplicate dates for the same challenge
-			const existingActivity = state.activityDates.find(
-				(activity) =>
-				activity.date === date &&
-				activity.weekNo === curWeek &&
-				activity.challengeNo === curChallenge
-			);
-
-			if (!existingActivity) {
-				state.activityDates.push({
-				date: date,
-				weekNo: curWeek,
-				challengeNo: curChallenge,
-				});
-			}
-
-			// Check if the user has completed all challenges for the current week consecutively
-			const weekActivities = state.activityDates.filter(
-				(activity) => activity.weekNo === curWeek
-			);
-			
-			// Sort dates to check for consecutive streak
-			weekActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
-			
-			// Check for consecutive dates
-			const isConsecutive = weekActivities.every((_, index, arr) => {
-				if (index === 0) return true;
-				const prevDate = new Date(arr[index - 1].date);
-				const currentDate = new Date(arr[index].date);
-				const differenceInDays = (currentDate - prevDate) / (1000 * 60 * 60 * 24);
-				return differenceInDays === 1;
-			});
-			
-			if (isConsecutive && weekActivities.length === 7) {
-				// Mark the badge for this week as true
-				state.badges[curWeek - 1] = true;
-			}
-		},
   },
 
   extraReducers: (builder) => {
     builder
-      // registerUser
+      /* ============================================================
+         REGISTER USER
+      ============================================================ */
       .addCase(registerUser.pending, (state) => {
         state.status = "loading";
       })
@@ -208,7 +230,9 @@ const userSlice = createSlice({
         toast.error(action.payload);
       })
 
-      // loginUser
+      /* ============================================================
+         LOGIN USER
+      ============================================================ */
       .addCase(loginUser.pending, (state) => {
         state.status = "loading";
       })
@@ -228,7 +252,9 @@ const userSlice = createSlice({
         toast.error(action.payload);
       })
 
-      // getUser
+      /* ============================================================
+         GET USER
+      ============================================================ */
       .addCase(getUser.pending, (state) => {
         state.status = "loading";
       })
@@ -246,7 +272,9 @@ const userSlice = createSlice({
         toast.error(action.payload);
       })
 
-      // updateProfile
+      /* ============================================================
+         UPDATE PROFILE
+      ============================================================ */
       .addCase(updateProfile.pending, (state) => {
         state.status = "loading";
       })
@@ -262,20 +290,66 @@ const userSlice = createSlice({
       .addCase(updateProfile.rejected, (state, action) => {
         state.status = "failed";
         toast.error(action.payload);
+      })
+
+      /* ============================================================
+         UPDATE DETECTED DISEASE
+      ============================================================ */
+      .addCase(updateDetectedDisease.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateDetectedDisease.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const data = action.payload;
+        if (data.success) {
+          state.detectedDisease = data.detectedDisease;
+          toast.success("Diagnosis saved successfully!");
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .addCase(updateDetectedDisease.rejected, (state, action) => {
+        state.status = "failed";
+        toast.error(action.payload);
+      })
+
+      /* ============================================================
+         HANDLE GAME COMPLETION
+      ============================================================ */
+      .addCase(handleGameCompletion.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(handleGameCompletion.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const data = action.payload;
+        if (data.success) {
+          // Update all game-related fields from backend
+          state.scores = data.updatedUser.scores;
+          state.curWeek = data.updatedUser.curWeek;
+          state.curChallenge = data.updatedUser.curChallenge;
+          state.lastPlayedDate = data.updatedUser.lastPlayedDate;
+          state.activityDates = data.updatedUser.activityDates;
+          state.badges = data.updatedUser.badges;
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .addCase(handleGameCompletion.rejected, (state, action) => {
+        state.status = "failed";
+        toast.error(action.payload);
       });
   },
 });
 
+/* ==================================================================
+   EXPORTS
+================================================================== */
+
 export const {
   setUser,
   updateSelectedWeek,
-  updateScore,
-  nextChallenge,
-  logoutUser,
-  setDisease,
-  setLastPlayedDate,
   clearToken,
-  addActivityDate
+  logoutUser,
 } = userSlice.actions;
 
 export default userSlice.reducer;

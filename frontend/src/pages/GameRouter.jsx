@@ -1,10 +1,11 @@
+// ============================================
+// 1. UPDATED GameRouter.jsx
+// ============================================
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  updateScore,
-  nextChallenge,
-  setLastPlayedDate,
+  handleGameCompletion,
 } from "@/redux/userSlice";
 import { toast } from "react-toastify";
 import { todayISO, isSameDay } from "@/utils/dateUtils";
@@ -54,7 +55,7 @@ const GameRouter = () => {
   const user = useSelector((s) => s.user);
   const [submitting, setSubmitting] = useState(false);
 
-  const detectedDisease = user?.detectedDisease || "Diabetic Retinopathy";
+  const detectedDisease = user?.detectedDisease || "Normal";
   const diseaseGames = diseaseGameMap[detectedDisease] ?? Array.from({ length: 7 }, (_, i) => `Game ${i+1}`);
 
 
@@ -122,7 +123,7 @@ const GameRouter = () => {
 
 
   /* ------------------------------------------------------------------
-      HANDLE GAME COMPLETION
+      HANDLE GAME COMPLETION - NOW WITH BACKEND
   ------------------------------------------------------------------ */
   async function onFinish(finalScore) {
     if (typeof finalScore !== "number") {
@@ -138,21 +139,27 @@ const GameRouter = () => {
       const week = user.selectedWeek - 1;
       const dayIndex = index;
 
-      dispatch(updateScore({ week, day: dayIndex, score }));
-      dispatch(setLastPlayedDate(todayISO()));
+      // Dispatch thunk to update backend and frontend
+      const result = await dispatch(handleGameCompletion({
+        score,
+        week,
+        day: dayIndex,
+        lastPlayedDate: todayISO()
+      })).unwrap();
 
-      if (score >= 80) {
-        dispatch(nextChallenge());
-        toast.success(`Great job! You scored ${score}.`);
-      } else {
-        toast.info(`Score: ${score}. Aim for ≥ 80% to clear this day.`);
+      if (result.success) {
+        if (score >= 80) {
+          toast.success(`Great job! You scored ${score}. Moving to next challenge!`);
+        } else {
+          toast.info(`Score: ${score}. Aim for ≥ 80% to clear this day.`);
+        }
+        
+        setTimeout(() => navigate("/exercise"), 900);
       }
-
-      setTimeout(() => navigate("/exercise"), 900);
 
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update score.");
+      toast.error("Failed to update score. Please try again.");
     } finally {
       setSubmitting(false);
     }
