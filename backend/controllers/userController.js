@@ -89,84 +89,6 @@ const getUser = async (req, res) => {
     }
 }
 
-//API to update user's accuracy of a challenge and mark challenge completed
-const handleChallengeCompletion = async (req, res) => {
-    const { 
-        accuracy, 
-        week, 
-        day, 
-        curWeek, 
-        curChallenge, 
-        nextWeek, 
-        nextChallenge, 
-        date 
-    } = req.body;
-    
-    try {
-        const user = await userModel.findOne({ _id: req.body.userId });
-        if (!user) {
-            return res.json({ success: false, message: "User Not Found!" });
-        }
-
-        // Update user's scores
-        if (!user.scores[week]) {
-            user.scores[week] = [];
-        }
-        user.scores[week][day] = accuracy;
-
-        // Add activity date
-        const existingActivity = user.activityDates.find(
-            activity => 
-                activity.date === date && 
-                activity.weekNo === curWeek && 
-                activity.challengeNo === curChallenge
-        );
-
-        if (!existingActivity) {
-            user.activityDates.push({
-                date,
-                weekNo: curWeek,
-                challengeNo: curChallenge
-            });
-        }
-
-        // Update progress
-        user.curWeek = nextWeek;
-        user.curChallenge = nextChallenge;
-
-        // Check for consecutive completion badge
-        const weekActivities = user.activityDates
-            .filter(activity => activity.weekNo === curWeek)
-            .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        const isConsecutive = weekActivities.every((_, index, arr) => {
-            if (index === 0) return true;
-            const prevDate = new Date(arr[index - 1].date);
-            const currentDate = new Date(arr[index].date);
-            const differenceInDays = (currentDate - prevDate) / (1000 * 60 * 60 * 24);
-            return differenceInDays === 1;
-        });
-
-        if (isConsecutive && weekActivities.length === 7) {
-            if (!user.badges) user.badges = [];
-            user.badges[curWeek - 1] = true;
-        }
-
-        await user.save();
-        
-        return res.json({ 
-            success: true, 
-            message: "Challenge completion handled successfully" 
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ 
-            success: false, 
-            message: "Internal server error" 
-        });
-    }
-};
-
 //API to update user's profile
 const updateProfile = async (req, res) => {
     try {
@@ -194,99 +116,6 @@ const updateProfile = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.json({success:false, message:error.message})
-    }
-}
-
-
-//API to forge data for sample purpose
-const forgeData = async (req, res) => {
-    const randomScore = () => Math.random() * 20.0 + 80.0;
-
-    const initializeScores = (week, challenge) => {
-        const scores = Array.from({ length: 7 }, () => Array(7).fill(0.0));
-        for (let i = 0; i < week; i++) {
-            for (let j = 0; j <= (i === week-1 ? challenge - 2 : 6); j++) {
-                scores[i][j] = randomScore();
-            }
-        }
-        return scores;
-    };
-
-    const generateActivityDates = (startDate, weeks = 7, challengesPerWeek = 7) => {
-        const dates = [];
-        const currentDate = new Date(startDate);
-
-        for (let week = 1; week <= 4; week++) {
-            for (let challenge = 1; challenge <= (week == 4 ? 1 : 7); challenge++) {
-                dates.push({
-                    date: new Date(currentDate).toISOString(),
-                    challengeNo: challenge,
-                    weekNo: week,
-                });
-                if (week == 1 && challenge == 5) currentDate.setDate(currentDate.getDate() + 3);
-                else currentDate.setDate(currentDate.getDate() + 1);
-            }
-        }
-        return dates;
-    };
-
-    const checkAndUpdateBadges = (activityDates) => {
-        const badges = Array(7).fill(false);
-        
-        // Group activities by week
-        const activitiesByWeek = {};
-        activityDates.forEach(activity => {
-            if (!activitiesByWeek[activity.weekNo]) {
-                activitiesByWeek[activity.weekNo] = [];
-            }
-            activitiesByWeek[activity.weekNo].push(activity);
-        });
-
-        // Check each week for consecutive completions
-        Object.entries(activitiesByWeek).forEach(([weekNo, weekActivities]) => {
-            // Sort dates to check for consecutive streak
-            weekActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            // Check if all 7 challenges were completed
-            if (weekActivities.length === 7) {
-                // Check for consecutive dates
-                const isConsecutive = weekActivities.every((_, index, arr) => {
-                    if (index === 0) return true;
-                    const prevDate = new Date(arr[index - 1].date);
-                    const currentDate = new Date(arr[index].date);
-                    const differenceInDays = (currentDate - prevDate) / (1000 * 60 * 60 * 24);
-                    return differenceInDays === 1;
-                });
-
-                if (isConsecutive) {
-                    badges[parseInt(weekNo) - 1] = true;
-                }
-            }
-        });
-
-        return badges;
-    };
-
-    const {userId} = req.body;
-    const activityDates = generateActivityDates("2024-11-19T13:19:13.186Z");
-    const scores = initializeScores(4,2);
-    const badges = checkAndUpdateBadges(activityDates);
-    
-    try {
-        await userModel.findByIdAndUpdate(
-            userId, 
-            {
-                activityDates, 
-                scores, 
-                curChallenge: 2, 
-                curWeek: 4, 
-                date: "2024-11-20T13:19:13.186Z",
-                badges
-            }
-        );
-        return res.json({success: true, message: 'Data forged Successfully!'})
-    } catch (error) {
-        return res.json({success: false, message: 'Data could not be forged!'})
     }
 }
 
@@ -415,4 +244,165 @@ const handleGameCompletion = async (req, res) => {
 };
 
 
-export {registerUser, loginUser, getUser, handleChallengeCompletion, updateProfile, forgeData, updateDetectedDisease, handleGameCompletion}
+// Forge fake data for testing - Now simulates actual game completions
+const forgeUserData = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.json({ success: false, message: 'User not found' });
+    }
+
+    // Reset user data first
+    user.scores = Array.from({ length: 4 }, () => Array(7).fill(0));
+    user.curWeek = 1;
+    user.curChallenge = 1;
+    user.activityDates = [];
+    user.badges = [false, false, false, false];
+    user.lastPlayedDate = null;
+
+    await user.save();
+
+    // Helper function to simulate game completion
+    const simulateGameCompletion = async (weekNo, challengeNo, score, daysAgo) => {
+      const date = new Date();
+      date.setDate(date.getDate() - daysAgo);
+      date.setHours(0, 0, 0, 0); // Normalize to midnight
+
+      const week = weekNo - 1;
+      const day = challengeNo - 1;
+
+      // Update score if higher
+      if (Number(score) > user.scores[week][day]) {
+        user.scores[week][day] = Number(score);
+      }
+
+      // Update progress if score >= 80
+      if (score >= 80) {
+        if (challengeNo === 7) {
+          if (weekNo < 4) {
+            user.curWeek = weekNo + 1;
+            user.curChallenge = 1;
+          }
+        } else {
+          user.curWeek = weekNo;
+          user.curChallenge = challengeNo + 1;
+        }
+      }
+
+      // Update last played date
+      user.lastPlayedDate = date.getDate();
+
+      // Add activity date (avoid duplicates)
+      const dateStr = date.toISOString().split('T')[0];
+      const existingActivity = user.activityDates.find(
+        (activity) =>
+          new Date(activity.date).toISOString().split('T')[0] === dateStr &&
+          activity.weekNo === weekNo &&
+          activity.challengeNo === challengeNo
+      );
+
+      if (!existingActivity) {
+        user.activityDates.push({
+          date: date,
+          weekNo: weekNo,
+          challengeNo: challengeNo,
+        });
+      }
+
+      // Check for badge completion (7 consecutive days in a week)
+      const weekActivities = user.activityDates.filter(
+        (activity) => activity.weekNo === weekNo
+      );
+
+      weekActivities.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const isConsecutive = weekActivities.every((_, index, arr) => {
+        if (index === 0) return true;
+        const prevDate = new Date(arr[index - 1].date);
+        const currentDate = new Date(arr[index].date);
+        const differenceInDays = (currentDate - prevDate) / (1000 * 60 * 60 * 24);
+        return differenceInDays === 1;
+      });
+
+      if (isConsecutive && weekActivities.length === 7) {
+        user.badges[weekNo - 1] = true;
+      }
+    };
+
+    // === WEEK 1: 7 CONSECUTIVE DAYS (should earn badge) ===
+    await simulateGameCompletion(1, 1, 85, 20); // 20 days ago
+    await simulateGameCompletion(1, 2, 92, 19); // 19 days ago
+    await simulateGameCompletion(1, 3, 88, 18); // 18 days ago
+    await simulateGameCompletion(1, 4, 95, 17); // 17 days ago
+    await simulateGameCompletion(1, 5, 90, 16); // 16 days ago
+    await simulateGameCompletion(1, 6, 87, 15); // 15 days ago
+    await simulateGameCompletion(1, 7, 93, 14); // 14 days ago - Week 1 complete!
+
+    // === WEEK 2: WITH GAPS (should NOT earn badge) ===
+    await simulateGameCompletion(2, 1, 84, 13); // 13 days ago
+    await simulateGameCompletion(2, 2, 86, 12); // 12 days ago
+    // GAP HERE - skipped day 11
+    await simulateGameCompletion(2, 3, 89, 10); // 10 days ago
+    await simulateGameCompletion(2, 4, 91, 9);  // 9 days ago
+    // GAP HERE - skipped day 8
+    await simulateGameCompletion(2, 5, 87, 7);  // 7 days ago
+    await simulateGameCompletion(2, 6, 90, 6);  // 6 days ago
+    await simulateGameCompletion(2, 7, 88, 5);  // 5 days ago - Week 2 complete!
+
+    // === WEEK 3: IN PROGRESS (1 challenge done) ===
+    await simulateGameCompletion(3, 1, 92, 4);  // 4 days ago
+
+
+
+    // Calculate the number of milliseconds in 100 days
+    // 100 days * 24 hours/day * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    const millisecondsIn100Days = 100 * millisecondsPerDay;
+
+    // Get the current timestamp (milliseconds since the epoch)
+    const nowTimestamp = Date.now();
+
+    // Calculate the timestamp from 100 days ago
+    const pastTimestamp = nowTimestamp - millisecondsIn100Days;
+
+    // Create a new Date object using the past timestamp
+    user.date = new Date(pastTimestamp);
+    // Save all changes
+    await user.save();
+
+    // Prepare summary message
+    const summaryMessage = `
+Test Data Generated:
+- Week 1: ✅ Completed (7 consecutive days) - Badge: ${user.badges[0] ? '🏆 Earned' : '❌ Not Earned'}
+- Week 2: ✅ Completed (WITH GAPS) - Badge: ${user.badges[1] ? '🏆 Earned' : '❌ Not Earned'}
+- Week 3: 🔄 In Progress (1/7 challenges)
+- Current Position: Week ${user.curWeek}, Challenge ${user.curChallenge}
+- Total Activities: ${user.activityDates.length}
+    `.trim();
+
+    console.log(summaryMessage);
+
+    res.json({
+      success: true,
+      message: 'Test data generated and processed through game completion logic',
+      summary: summaryMessage,
+      forgedUser: {
+        scores: user.scores,
+        curWeek: user.curWeek,
+        curChallenge: user.curChallenge,
+        activityDates: user.activityDates,
+        badges: user.badges,
+        lastPlayedDate: user.lastPlayedDate
+      }
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+
+export {registerUser, loginUser, getUser, updateProfile, updateDetectedDisease, handleGameCompletion, forgeUserData}

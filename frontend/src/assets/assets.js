@@ -42,7 +42,7 @@ import Mouth from './Mouth.jpg';
 import PP_Aryan from './PP_Aryan.jpg';
 import PP_Ryan from './PP_Ryan.jpg';
 import PP_Chiranth from './PP_Chiranth.jpg';
-import PP_Chinmay from './PP_Chinmay.jpg';
+import PP_Fawzan from './PP_Fawzan.png';
 import hamburger from './hamburger.svg'
 import hamburgerwhite from './hamburgerwhite.svg'
 import closeIcon from './CloseIcon.svg'
@@ -92,7 +92,7 @@ export const assets = {
     Badge7,
     Mouth,
     PP_Aryan,
-    PP_Chinmay,
+    PP_Fawzan,
     PP_Chiranth,
     PP_Ryan,
     hamburger, hamburgerwhite,

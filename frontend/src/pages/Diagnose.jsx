@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Upload, Eye, AlertCircle, CheckCircle, Loader2, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateDetectedDisease } from '../redux/userSlice.js' 
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 
 export default function Diagnose() {
@@ -12,6 +14,14 @@ export default function Diagnose() {
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      toast.error('Please login first!');
+      navigate('/login');
+    }
+  }, [token]);
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];

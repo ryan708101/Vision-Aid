@@ -29,11 +29,11 @@ const ExercisePage = () => {
   // If user has no disorders
   if (user && user.detectedDisease === "Normal") {
     return (
-      <div className="pt-40 pb-20 max-w-[1280px] mx-auto text-center font-bold text-3xl flex items-center flex-col">
-        <span className="text-primary-blue">Congratulations!</span> <br />
+      <div className="pt-40 pb-20 max-w-[1280px] mx-auto text-center font-bold text-3xl flex items-center flex-col text-white">
+        <span className="text-primary-green">Congratulations!</span> <br />
         You have no diagnosed disorders. <br />
         Keep taking care of your well-being!
-        <img className="w-[300px] h-[300px]" src={assets.PartyPopper} alt="" />
+        <img className="w-[300px] h-[300px] pt-10" src={assets.PartyPopper} alt="" />
       </div>
     );
   }
@@ -90,7 +90,7 @@ const ExercisePage = () => {
       <div className="text-black bg-white w-[120px] h-[120px] p-3 inline-flex justify-center items-center rounded-full font-medium text-2xl">
         Day {day + 1}
       </div>
-      <p className="font-semibold text-lg">{gameName}</p>
+      <p className="font-semibold text-lg text-center">{gameName}</p>
       <p className="font-semibold text-lg mt-[-6px]">
         Best Score: {user.scores[user.selectedWeek - 1][day].toFixed(2)}%
       </p>
@@ -131,7 +131,7 @@ const ExercisePage = () => {
         <div className="text-black bg-white w-[120px] h-[120px] p-3 inline-flex justify-center items-center rounded-full font-medium text-2xl">
           Day {day + 1}
         </div>
-        <p className="font-semibold bg-white/60 text-black px-3 py-1 rounded-lg text-center min-h-[60px]">
+        <p className="font-semibold bg-white/60 text-black px-3 py-1 rounded-lg text-center min-h-[60px] inline-flex items-center">
           {gameName}
         </p>
       </div>

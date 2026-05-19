@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Chart, registerables } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
+import { forgeUserData } from '@/redux/userSlice';
 
 // Register all chart components
 Chart.register(...registerables);
@@ -99,8 +100,8 @@ const MyProfile = () => {
           datasets: [{
             label: `Week ${user.selectedWeek} Challenge Scores`,
             data: selectedWeekData,
-            backgroundColor: '#5f6FFF',
-            borderColor: '#001aff',
+            backgroundColor: '#00ff62',
+            borderColor: '#00f100',
             borderWidth: 1,
           }]
         },
@@ -196,11 +197,33 @@ const MyProfile = () => {
     return count === 0 ? 0 : sum / count;
   };
 
+    /* ==================================================================
+     FORGE DATA HANDLER
+  ================================================================== */
+  const handleForgeData = async () => {
+    try {
+      await dispatch(forgeUserData()).unwrap();
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message || "Failed to forge data");
+    }
+  };
+
   /* ==================================================================
      RENDER
   ================================================================== */
   return (
     <div className='max-w-[1280px] mx-auto pt-40'>
+
+      {/* FORGE DATA BUTTON - For Testing Only */}
+      <div className='flex justify-center mb-8 mx-6'>
+        <button
+          onClick={handleForgeData}
+          className='bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-3 rounded-full shadow-lg hover:scale-105 transition-all'
+        >
+          🔧 Forge Test Data
+        </button>
+      </div>
       
       {/* MY PROFILE SECTION */}
       <div className='relative flex flex-col gap-8 items-center bg-gray-900 px-6 py-4 rounded-2xl mx-6' style={{ boxShadow: '6px 6px 10px #0f0f0f' }}>
@@ -329,14 +352,14 @@ const MyProfile = () => {
                 value={user.detectedDisease}
                 onChange={e => dispatch(setUser({ ...user, detectedDisease: e.target.value }))}
               >
-                <option value=''>No Disorder</option>
+                <option value='Normal'>Normal</option>
                 <option value='Diabetic Retinopathy'>Diabetic Retinopathy</option>
                 <option value='Glaucoma'>Glaucoma</option>
                 <option value='Cataract'>Cataract</option>
               </select>
             ) : (
               <p className='font-bold text-xl text-primary-green'>
-                {user.detectedDisease || 'No Disorder'}
+                {user.detectedDisease || 'Normal'}
               </p>
             )}
           </div>
@@ -413,7 +436,7 @@ const MyProfile = () => {
           max={100}
           min={0}
           value={calculateAverageAccuracy()}
-          gaugePrimaryColor="rgb(79 70 229)"
+          gaugePrimaryColor="#00ff62"
           gaugeSecondaryColor="#8a8a8a"
           className="self-end w-48 h-48 mx-auto"
         />

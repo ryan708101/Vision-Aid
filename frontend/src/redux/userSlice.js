@@ -138,6 +138,23 @@ export const handleGameCompletion = createAsyncThunk(
   }
 );
 
+// Forge fake data for testing
+export const forgeUserData = createAsyncThunk(
+  'user/forgeData',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState();
+      const { data } = await axios.get(
+        `${backendUrl}/api/user/forgeData`,
+        { headers: { token: state.user.token } }
+      );
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to forge data");
+    }
+  }
+);
+
 /* ==================================================================
    INITIAL STATE
 ================================================================== */
@@ -169,7 +186,7 @@ const initialState = {
   lastPlayedDate: null,
 
   // Account creation date
-  date: new Date().toISOString(),
+  date: "",
 
   // Loading status
   status: "idle",
@@ -337,7 +354,34 @@ const userSlice = createSlice({
       .addCase(handleGameCompletion.rejected, (state, action) => {
         state.status = "failed";
         toast.error(action.payload);
+      })
+
+      // ============================================================
+      // FORGE USER DATA
+      // ============================================================
+      .addCase(forgeUserData.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(forgeUserData.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const data = action.payload;
+        if (data.success) {
+          // Update all fields with forged data
+          state.scores = data.forgedUser.scores;
+          state.curWeek = data.forgedUser.curWeek;
+          state.curChallenge = data.forgedUser.curChallenge;
+          state.activityDates = data.forgedUser.activityDates;
+          state.badges = data.forgedUser.badges;
+          toast.success("Test data generated successfully!");
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .addCase(forgeUserData.rejected, (state, action) => {
+        state.status = "failed";
+        toast.error(action.payload);
       });
+
   },
 });
 

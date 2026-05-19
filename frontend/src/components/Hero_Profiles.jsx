@@ -4,10 +4,10 @@ import { assets } from "@/assets/assets.js";
 const people = [
   {
     id: 1,
-    name: "Vuppu Chinmay",
+    name: "Fawzan Aftab",
     
     image:
-      assets.PP_Chinmay
+      assets.PP_Fawzan
   },
   {
     id: 2,

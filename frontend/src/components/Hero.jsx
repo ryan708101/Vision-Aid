@@ -3,10 +3,12 @@ import { ShineBorder } from './magicui/shine-border'
 import { assets } from '@/assets/assets'
 import '../index.css'
 import Hero_Profiles from './Hero_Profiles'
+import { useNavigate } from 'react-router-dom'
 
 
 
 const Hero = () => {
+  const navigate = useNavigate();
   return (
 	<div className="hero relative z-10 w-fit p-3 max-w-[1280px] overflow-hidden rounded-xl mx-auto bg-gradient-hero-bg ">
 
@@ -50,7 +52,7 @@ const Hero = () => {
                         <div className="flex justify-start gap-4 w-full pr-8 max-900px:justify-center max-900px:pr-0">
                             <button
                                 onClick={() => navigate('/login')}
-                                className="flex items-center gap-2 text-xl bg-primary-green text-black px-4 py-2 border-2 rounded-full hover:scale-105 transition-all duration-1000 group"
+                                className="flex items-center gap-2 text-xl bg-primary-green text-black px-4 py-2 border-2 rounded-full hover:scale-105 transition-all duration-1000 group relative z-20"
                             >
                                 Login
                                 <img

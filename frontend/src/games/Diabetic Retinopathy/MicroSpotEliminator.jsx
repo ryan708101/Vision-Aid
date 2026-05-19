@@ -10,7 +10,7 @@ export default function MicroSpotEliminator({ onFinish }) {
 
   const DURATION = 30;
   const MAX_SCORE = 100;
-  const CORRECT_POINTS = 2;
+  const CORRECT_POINTS = 10;
   const WRONG_POINTS = -1;
 
   const [timeLeft, setTimeLeft] = useState(DURATION);
